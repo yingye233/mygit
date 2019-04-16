@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>飞机大战</title>
+</head>
+<body>
+	<div style="width: 480px;height:650px; margin:0 auto; border: 1px solid red;">
+		<canvas width="480" height="650" id="canvas"></canvas>
+	</div>
+</body>
+</html>
+<script>
+	function $(id){
+		return document.getElementById(id)
+	}
+	window.onload = function(){
+		var canvas = $("canvas");
+		var ctx = canvas.getContext("2d");
+		//设定五个状态
+		//开始之前
+		var start = 0 ;
+		//开始中
+		var starting = 1;
+		//运行中
+		var running = 2;
+		//游戏暂停
+		var stoping = 3;
+		//游戏结束
+		var game_over = 4;
+		//首先将状态设定为开始之前
+		var state = start;
+		//得到画布的宽高
+		var Width = 480;
+		var Height = 650;
+		var life = 3;
+		var score = 0;
+		//创建背景图片
+		var bg = new Image()
+		bg.src = "img/background.png";
+		//创建版权图片
+		var copy_img = new Image()
+		copy_img.src ="img/shoot_copyright.png";
+
+		var pruse = new Image()
+		pruse.src = "img/game_pause_nor.png"
+
+		var b = new Image()
+		b.src = "img/bullet1.png"
+		//点击画布,进入starting状态
+		canvas.onclick =function(){
+			if(state == start){
+				state = starting
+			}else if(state == game_over){
+				state = running;
+				score = 0;
+				life = 4
+
+			}
+		}
+		canvas.onmousemove = function(e){
+			hero.x=e.offsetX - HERO.width / 2;
+			hero.y=e.offsetY - HERO.height / 2;
+			//console.log(hero.x + ":" +hero.y )
+		}
+		canvas.onmouseout = function(){
+			if(state == running){
+				state = stoping
+			}
+		}
+		canvas.onmouseover = function(){
+			if(state==stoping){
+				state=running
+			}
+		}
+		//定义数组 储存loading的图片
+		var l = [];
+	    l[0] =new Image()
+		l[0].src = "img/game_loading1.png";
+	    l[1] =new Image()
+		l[1].src = "img/game_loading2.png";
+	    l[2] =new Image()
+		l[2].src = "img/game_loading3.png";
+	    l[3] =new Image()
+		l[3].src = "img/game_loading4.png"
+		//定义数组 储存我方战机图片
+		var h = [];
+		h[0] = new Image();
+		h[0].src = "img/hero1.png";
+		h[1] = new Image();
+		h[1].src = "img/hero2.png";
+		h[2] = new Image();
+		h[2].src = "img/hero_blowup_n1.png";
+		h[3] = new Image();
+		h[3].src = "img/hero_blowup_n2.png";
+		h[4] = new Image();
+		h[4].src = "img/hero_blowup_n3.png";
+		h[5] = new Image();
+		h[5].src = "img/hero_blowup_n4.png";
+		//小飞机
+		var e1 = []
+		e1[0] = new Image();
+		e1[0].src = "img/enemy1.png";
+		e1[1] = new Image();
+		e1[1].src = "img/enemy1_down1.png";
+		e1[2] = new Image();
+		e1[2].src = "img/enemy1_down2.png";
+		e1[3] = new Image();
+		e1[3].src = "img/enemy1_down3.png";
+		e1[4] = new Image();
+		e1[4].src = "img/enemy1_down4.png";
+		//中飞机
+		var e2 = [];
+		e2[0] = new Image();
+		e2[0].src = "img/enemy2.png";
+		e2[1] = new Image();
+		e2[1].src = "img/enemy2_down1.png";
+		e2[2] = new Image();
+		e2[2].src = "img/enemy2_down2.png";
+		e2[3] = new Image();
+		e2[3].src = "img/enemy2_down3.png";
+		e2[4] = new Image();
+		e2[4].src = "img/enemy2_down4.png"
+		//大飞机
+		var e3 = [];
+		e3[0] = new Image();
+		e3[0].src = "img/enemy3_n1.png";
+		e3[1] = new Image();
+		e3[1].src = "img/enemy3_n2.png";
+		e3[2] = new Image();
+		e3[2].src = "img/enemy3_down1.png";
+		e3[3] = new Image();
+		e3[3].src = "img/enemy3_down2.png";
+		e3[4] = new Image();
+		e3[4].src = "img/enemy3_down3.png";
+		e3[5] = new Image();
+		e3[5].src = "img/enemy3_down4.png";
+		e3[6] = new Image();
+		e3[6].src = "img/enemy3_down5.png";
+		e3[7] = new Image();
+		e3[7].src = "img/enemy3_down6.png";
+		//数据对象 储存需要使用的属性
+		var SKY = {
+			img:bg,
+			width:480,
+			height:650,
+			speed:20
+		}
+		var LOADING = {
+			frame:l,
+			width:186,
+			x:0,
+			height:38,
+			y:Height-38,
+			speed:10
+		}
+		var HERO = {
+			frame:h,
+			width:99,
+			height:124,
+			speed:20,
+			data:2
+		}
+		var BULLET = {
+			width:9,
+			height:21,
+			image:b
+		}		
+		var E1 = {
+			width:57,
+			type:1,
+			score:1,
+			frame : e1,
+			baseFrameCount:1,
+			life:1,
+			minSpeed:70,
+			maxSpeed:100,
+			height:51
+		}
+		var E2 = {
+			width:69,
+			type:2,
+			score:5,
+			frame : e2,
+			baseFrameCount:1,
+			life:5,
+			minSpeed:50,
+			maxSpeed:70,
+			height:95
+		}
+		var E3 = {
+			width:169,
+			type:3,
+			score:20,
+			frame : e3,
+			baseFrameCount:2,
+			life:20,
+			speed:5,
+			height:258
+		}
+		//业务对象 处理得到的属性
+		//敌方战机
+		var Enemies=function(config){
+			this.type = config.type;
+			this.lastTime = 0;
+			this.speed = 0;
+			this.frames = null;
+			this.frameIndex =0;
+			this.frame = config.frame;
+			this.width = config.width;
+			this.height = config.height;
+			this.count = config.baseFrameCount
+			this.x = Math.random()*(Width - config.width);
+			this.y = -config.height;
+			this.down = false;
+			this.candelect = false;
+			this.life = config.life;
+			this.score = config.score;
+			if(config.minSpeed&&config.maxSpeed){
+				this.speed = 1000/(Math.random()*(config.maxSpeed - config.minSpeed) + config.minSpeed)
+			}else{
+				this.speed = 1000/config.speed
+			}
+			this.step = function(){
+				var currentTime = new Date().getTime()
+				if(currentTime - this.lastTime >= this.speed){
+					if(this.down){
+						if(this.frameIndex==this.frame.length){
+							this.candelect = true
+						}else{
+							this.frames = this.frame[this.frameIndex];
+							this.frameIndex++;
+						}
+					}else{
+						this.frames = this.frame[this.frameIndex%this.count];
+						this.frameIndex++;
+						
+					}
+					this.lastTime = new Date().getTime();
+					this.move();
+				}
+			}
+			this.move = function(){
+				this.y++
+			}
+			this.paint = function(ctx){
+				ctx.drawImage(this.frames,this.x,this.y)
+			}
+			this.delect = function(){
+				if(this.y>Height){
+					return true;
+				}
+				return false;
+			}
+			this.duang = function(){
+				this.life--;
+				if(this.life==0){
+					this.down = true;
+					this.frameIndex = this.count;
+					score += this.score
+				}
+			}
+			this.hit = function(c){
+				var centX = c.x + c.width/2;
+				var centY = c.y + c.height/2;
+				var leftX = this.x - c.width/2;
+				var rigthX = this.x + this.width + c.width/2;
+				var topY = this.y -c.height/2;
+				var bottomY = this.y + this.height+c.height/2
+				var result = leftX<centX&&centX<rigthX&&topY<centY&&centY<bottomY;
+				return result
+				
+			}
+		}
+		//我方战机
+		var Hero = function(config){
+			this.lastTime = 0;
+			this.speed = 1000/config.speed;
+			this.frameIndex = 0;
+			this.frames = null;
+			this.width = config.width;
+			this.height = config.height;
+			this.x = (Width - this.width)/2;
+			this.y = Height - this.height -30;
+			this.down = false;
+			this.candelect = false;
+
+			this.step = function(){
+				var currentTime = new Date().getTime();
+				//通过时间差开始运动
+				if(currentTime - this.lastTime >= this.speed){
+					if(this.down){
+						if(this.frameIndex == config.frame.length){
+							this.candelect = true
+						}else{
+							this.frames = config.frame[this.frameIndex];
+							this.frameIndex++;
+						}
+					}else{
+						this.frames = config.frame[this.frameIndex%config.data];
+						this.frameIndex++;
+						this.lastTime = new Date().getTime()
+					}
+				}
+			}
+			this.paint = function(ctx){
+				ctx.drawImage(this.frames,this.x,this.y)
+			}
+			this.shoopLast = 0;
+			this.shoopInter = 200;
+			this.shoop = function(){
+				var currentTime = new Date().getTime();
+				if(currentTime - this.shoopLast >= this.shoopInter){
+					var bullet = new Bullet(BULLET,this.x+45,this.y-25)
+					bullets.push(bullet);
+					this.shoopLast = new Date().getTime();
+				}
+			}
+			this.duang = function(){
+				this.down = true;
+				this.frameIndex = config.data;
+			}
+		}
+		var Bullet = function(config,x,y){
+			this.x = x;
+			this.y = y;
+			this.width = config.width;
+			this.height = config.height;
+			this.candelect = false;
+			this.move = function(){
+				this.y = this.y - 2;
+			}
+			this.paint = function(ctx){
+				ctx.drawImage(config.image,this.x,this.y)
+			}
+			this.delect = function(){
+				return this.y < 0-config.height
+			}
+			this.duang=function(){
+				this.candelect = true;
+			}
+		}
+		var Loading = function(config){
+			this.lastTime = 0;
+			this.speed = 1000/config.speed;
+			this.frameIndex = 0;
+			this.frames = null
+			this.step = function(){
+				var currentTime = new Date().getTime();
+				//通过时间差开始运动
+				if(currentTime - this.lastTime >= this.speed){
+					this.frames = config.frame[this.frameIndex];
+					this.frameIndex++;
+					if(this.frameIndex>=4){
+						state = running
+					}
+				this.lastTime = new Date().getTime()
+				}
+			}
+			this.paint = function(ctx){
+				ctx.drawImage(this.frames,config.x,config.y)
+			}
+		}
+		var Sky = function(config){
+			this.img =config.img;
+			this.speed = 1000/config.speed;
+			this.y1 = 0;  
+			this.y2 = -config.height;
+			this.lastTime = 0;
+			this.step = function(){
+				var currentTime = new Date().getTime()
+				if(currentTime -this.lastTime >= this.speed){
+					this.y1++;
+					this.y2++;
+					this.lastTime = new Date().getTime()
+				}
+				if(this.y1 >=config.height){
+					this.y1 = -config.height
+				}
+				if(this.y2 >=config.height){ 
+					this.y2 = -config.height
+				}
+			}
+
+			this.paint = function(ctx){
+				ctx.drawImage(this.img,0,this.y1)
+				ctx.drawImage(this.img,0,this.y2)
+			}
+
+		}
+		//实例化对象
+		var sky = new Sky(SKY);
+		var loading = new Loading(LOADING)
+		var hero = new Hero(HERO)
+
+
+		var bullets = [];
+		var enemies = [];
+		
+
+		var last_time = new Date().getTime();
+		var inter = 800
+		//创建敌人飞机
+		function componentEnter(){
+			var currentTime = new Date().getTime()
+			if(currentTime - last_time >= inter){
+				var n = Math.floor(Math.random()*10);
+				if(n>=0&&n<=7){
+					enemies[enemies.length] = new Enemies(E1);
+				}else if(n ==8){
+					enemies[enemies.length] = new Enemies(E2);
+				}else if(enemies[0].type != 3){
+					enemies.splice(0,0,new Enemies(E3))
+				}
+			last_time = new Date().getTime()
+			}
+		}
+		//判断是否发生撞击
+		function checkHit(){
+			for(var i = 0 ; i <enemies.length;i++){
+				var enem = enemies[i]
+				if(enem.down||enem.candelect){
+					continue;
+				}
+				for(var j = 0; j < bullets.length; j++){
+					var bull = bullets[j];
+					if(enem.hit(bull)){
+						bull.duang();
+						enem.duang()
+					}
+				}
+				if(enem.down||enem.candelect){
+					continue;
+				}
+				if(enem.hit(hero)){
+					hero.duang()
+					enem.duang()
+				}
+			}
+		}	
+
+
+		function moveComponent(){
+			for(var i = 0; i <bullets.length; i++){
+				bullets[i].move();
+			}
+			for(var i = 0 ; i < enemies.length;i++){
+				enemies[i].step();
+			}
+		}
+		function paintComponent(){
+			for(var i = 0; i <bullets.length; i++){
+				bullets[i].paint(ctx)
+			}
+			for(var i = 0 ; i < enemies.length;i++){
+				enemies[i].paint(ctx)
+			}
+			ctx.beginPath();
+			ctx.font = "bold 36px 楷体"
+			// ctx.shadowColor = "#cccccc";
+			// ctx.shadowOffsetX = 5;
+			// ctx.shadowOffsetY = 5;
+			// ctx.shadowBulr = 5;
+
+			// ctx.strokeText("你好!世界",100,100)
+			ctx.fillText("score:"+score,10,30)
+			ctx.fillText("LIFE:"+life,300,30)
+			ctx.closePath()
+		}
+		function delectComponent(){
+			for(var i = 0; i <bullets.length; i++){
+				if(bullets[i].delect()||bullets[i].candelect){
+					bullets.splice(i,1)
+				}
+			}
+			for(var i = 0 ; i <enemies.length; i++){
+				if(enemies[i].delect()){
+					score -= enemies[i].score;
+					
+				}
+				if(enemies[i].delect()||enemies[i].candelect){
+					enemies.splice(i,1)
+				}
+			}
+			if(hero.candelect){
+				life--;
+				if(life==0){
+					state = game_over;
+				}else{
+					hero = new Hero(HERO)
+				}
+			}
+		}
+		//定时器事件
+		setInterval(function(){
+			switch (state) {
+				case start:
+					//背景移动
+					sky.step();
+					sky.paint(ctx);
+					//版权图位置
+					var x = (Width - copy_img.naturalWidth)/2
+					var y = (Height - copy_img.naturalHeight)/2
+					ctx.drawImage(copy_img,x,y)
+					break;
+				case starting:
+					sky.step();
+					sky.paint(ctx);
+					//过度动画
+					loading.step();
+					loading.paint(ctx)
+					break;
+				case running:
+					sky.step();
+					sky.paint(ctx);
+
+					hero.step();
+					hero.paint(ctx)
+					hero.shoop();
+					checkHit();
+					componentEnter();
+					moveComponent()
+					
+					delectComponent()
+					paintComponent()
+				break;
+				case stoping:
+					var x = (Width - pruse.naturalWidth)/2
+					var y = (Height - pruse.naturalHeight)/2
+					ctx.drawImage(pruse,x,y)
+				break;
+				case game_over:
+				break;
+				default:
+					// statements_def
+					break;
+			}
+
+		},1000/100)
+	}
+		
+
+	
+</script>
